@@ -37,13 +37,13 @@ function App() {
   return (
     <>
       {phase === 'bios' && (
-        <BiosScreen onComplete={() => setPhase('dos')} />
-      )}
-      {phase === 'dos' && (
-        <DosBootScreen onComplete={() => setPhase(isMobile ? 'bsod' : 'loading')} />
+        <BiosScreen onComplete={() => setPhase(isMobile ? 'bsod' : 'dos')} />
       )}
       {phase === 'bsod' && (
         <BlueScreen />
+      )}
+      {phase === 'dos' && (
+        <DosBootScreen onComplete={() => setPhase('loading')} />
       )}
       {phase === 'loading' && (
         <LoadingScreen onComplete={() => setPhase('welcome')} />
