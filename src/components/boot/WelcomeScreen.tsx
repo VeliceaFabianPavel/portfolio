@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Modal, TitleBar, Button, Input } from '@react95/core';
 import { Msrating105 } from '@react95/icons';
+import { loadBackground, getBackgroundStyle } from '../../wallpapers';
+import startupSound from '../../assets/win95.mp3';
 
 interface WelcomeScreenProps {
   onComplete: () => void;
@@ -11,6 +13,8 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
 
   const handleOk = () => {
     if (password === 'portfolio') {
+      const audio = new Audio(startupSound);
+      audio.play().catch(() => {});
       onComplete();
     } else {
       setPassword('');
@@ -25,7 +29,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
     <div style={{
       width: '100vw',
       height: '100vh',
-      backgroundColor: '#008080',
+      ...getBackgroundStyle(loadBackground()),
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

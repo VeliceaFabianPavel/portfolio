@@ -1,5 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
-import startupSound from '../../assets/win95.mp3';
+import { useCallback, useState } from 'react';
 import shutdownSound from '../../assets/tada.mp3';
 import { Modal, TitleBar, Button, RadioButton } from '@react95/core';
 import {
@@ -14,6 +13,7 @@ import {
   Winmine1,
   Calculator,
   HelpBook,
+  Desk100,
 } from '@react95/icons';
 // React95 core components used by child components
 import { DesktopIcon } from './DesktopIcon';
@@ -29,7 +29,9 @@ import { MinesweeperApp } from '../apps/MinesweeperApp';
 import { DosPrompt } from '../apps/DosPrompt';
 import { CalculatorApp } from '../apps/CalculatorApp';
 import { HelpApp } from '../apps/HelpApp';
+import { DisplayApp } from '../apps/DisplayApp';
 import msDosIcon from '../../assets/MsDos_32x32_32.png';
+import { loadBackground, saveBackground, getBackgroundStyle, type DesktopBackground } from '../../wallpapers';
 
 interface DesktopProps {
   onShutDown: () => void;
@@ -104,6 +106,12 @@ const appConfigs: Record<string, AppConfig> = {
     position: { x: 220, y: 100 },
     size: { width: 260, height: 280 },
   },
+  display: {
+    title: 'Display Properties',
+    icon: Desk100,
+    position: { x: 120, y: 40 },
+    size: { width: 420, height: 440 },
+  },
 };
 
 const desktopIcons = [
@@ -117,21 +125,11 @@ const desktopIcons = [
   { id: 'dos', label: 'MS-DOS\nPrompt', icon: msDosIcon },
   { id: 'calculator', label: 'Calculator', icon: Calculator },
   { id: 'help', label: 'Help', icon: HelpBook },
+  { id: 'display', label: 'Display\nProperties', icon: Desk100 },
   { id: 'recycle', label: 'Recycle Bin', icon: RecycleFull },
 ];
 
-const appComponents: Record<string, React.ReactNode> = {
-  about: <AboutMe />,
-  projects: <ProjectsExplorer />,
-  skills: <SkillsApp />,
-  contact: <ContactApp />,
-  notepad: <NotepadApp />,
-  browser: <BrowserApp />,
-  minesweeper: <MinesweeperApp />,
-  dos: <DosPrompt />,
-  calculator: <CalculatorApp />,
-  help: <HelpApp />,
-};
+// appComponents is built inside the Desktop component since DisplayApp needs props
 
 function ShutdownDialog({ onYes, onNo }: { onYes: (action: 'shutdown' | 'restart') => void; onNo: () => void }) {
   const [selected, setSelected] = useState<'shutdown' | 'restart'>('shutdown');
@@ -194,11 +192,27 @@ function ShutdownDialog({ onYes, onNo }: { onYes: (action: 'shutdown' | 'restart
 export function Desktop({ onShutDown, onRestart }: DesktopProps) {
   const [openApps, setOpenApps] = useState<Set<string>>(new Set());
   const [showShutdownDialog, setShowShutdownDialog] = useState(false);
+  const [background, setBackground] = useState<DesktopBackground>(loadBackground);
 
-  useEffect(() => {
-    const audio = new Audio(startupSound);
-    audio.play().catch(() => {});
+  const applyBackground = useCallback((bg: DesktopBackground) => {
+    setBackground(bg);
+    saveBackground(bg);
   }, []);
+
+  const appComponents: Record<string, React.ReactNode> = {
+    about: <AboutMe />,
+    projects: <ProjectsExplorer />,
+    skills: <SkillsApp />,
+    contact: <ContactApp />,
+    notepad: <NotepadApp />,
+    browser: <BrowserApp />,
+    minesweeper: <MinesweeperApp />,
+    dos: <DosPrompt />,
+    calculator: <CalculatorApp />,
+    help: <HelpApp />,
+    display: <DisplayApp current={background} onApply={(bg) => { applyBackground(bg); closeApp('display'); }} />,
+  };
+
 
 
   const openApp = useCallback((id: string) => {
@@ -218,7 +232,7 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
     <div style={{
       width: '100vw',
       height: '100vh',
-      backgroundColor: '#008080',
+      ...getBackgroundStyle(background),
       position: 'relative',
       overflow: 'hidden',
       cursor: 'default',
