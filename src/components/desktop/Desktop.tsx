@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import shutdownSound from '../../assets/tada.mp3';
 import { Modal, TitleBar, Button, RadioButton } from '@react95/core';
 import {
@@ -129,6 +129,41 @@ const desktopIcons = [
   { id: 'recycle', label: 'Recycle Bin', icon: RecycleFull },
 ];
 
+const ICON_STORAGE_KEY = 'win95-icon-positions';
+const ICON_WIDTH = 78;
+const ICON_HEIGHT = 70;
+
+function getDefaultIconPositions(): Record<string, { x: number; y: number }> {
+  const positions: Record<string, { x: number; y: number }> = {};
+  const maxRows = Math.floor((window.innerHeight - 40) / ICON_HEIGHT);
+  desktopIcons.forEach((icon, i) => {
+    const col = Math.floor(i / maxRows);
+    const row = i % maxRows;
+    positions[icon.id] = { x: 8 + col * ICON_WIDTH, y: 8 + row * ICON_HEIGHT };
+  });
+  return positions;
+}
+
+function loadIconPositions(): Record<string, { x: number; y: number }> {
+  try {
+    const saved = localStorage.getItem(ICON_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Ensure all icons have positions
+      const defaults = getDefaultIconPositions();
+      for (const icon of desktopIcons) {
+        if (!parsed[icon.id]) parsed[icon.id] = defaults[icon.id];
+      }
+      return parsed;
+    }
+  } catch { /* ignore */ }
+  return getDefaultIconPositions();
+}
+
+function saveIconPositions(positions: Record<string, { x: number; y: number }>) {
+  localStorage.setItem(ICON_STORAGE_KEY, JSON.stringify(positions));
+}
+
 // appComponents is built inside the Desktop component since DisplayApp needs props
 
 function ShutdownDialog({ onYes, onNo }: { onYes: (action: 'shutdown' | 'restart') => void; onNo: () => void }) {
@@ -193,6 +228,40 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
   const [openApps, setOpenApps] = useState<Set<string>>(new Set());
   const [showShutdownDialog, setShowShutdownDialog] = useState(false);
   const [background, setBackground] = useState<DesktopBackground>(loadBackground);
+  const [iconPositions, setIconPositions] = useState(loadIconPositions);
+
+  const moveIcon = useCallback((id: string, pos: { x: number; y: number }) => {
+    setIconPositions(prev => {
+      const next = { ...prev, [id]: pos };
+      saveIconPositions(next);
+      return next;
+    });
+  }, []);
+
+  // F3 = reset icon positions, Shift+F3 = reset everything
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'F3') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          // Reset all: icons + background
+          const defaults = getDefaultIconPositions();
+          setIconPositions(defaults);
+          saveIconPositions(defaults);
+          const defaultBg: DesktopBackground = { type: 'color', value: '#008080' };
+          setBackground(defaultBg);
+          saveBackground(defaultBg);
+        } else {
+          // Reset icons only
+          const defaults = getDefaultIconPositions();
+          setIconPositions(defaults);
+          saveIconPositions(defaults);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
 
   const applyBackground = useCallback((bg: DesktopBackground) => {
     setBackground(bg);
@@ -237,27 +306,35 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
       overflow: 'hidden',
       cursor: 'default',
     }}>
-      {/* Desktop Icons */}
+      {/* Build string */}
       <div style={{
         position: 'absolute',
-        top: '8px',
-        left: '8px',
-        display: 'flex',
-        flexDirection: 'column',
-        flexWrap: 'wrap',
-        gap: '4px',
-        maxHeight: 'calc(100vh - 40px)',
-        alignContent: 'flex-start',
+        right: '8px',
+        bottom: '32px',
+        color: '#fff',
+        fontFamily: '"MS Sans Serif", Arial, sans-serif',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        textShadow: '1px 1px 2px rgba(0,0,0,0.6)',
+        pointerEvents: 'none',
+        textAlign: 'right',
+        lineHeight: '1.4',
       }}>
-        {desktopIcons.map(icon => (
-          <DesktopIcon
-            key={icon.id}
-            icon={icon.icon}
-            label={icon.label}
-            onDoubleClick={() => openApp(icon.id)}
-          />
-        ))}
+        Windows 95 Portfolio<br />
+        Build 4.00.950.B
       </div>
+
+      {/* Desktop Icons */}
+      {desktopIcons.map(icon => (
+        <DesktopIcon
+          key={icon.id}
+          icon={icon.icon}
+          label={icon.label}
+          position={iconPositions[icon.id] ?? { x: 8, y: 8 }}
+          onDoubleClick={() => openApp(icon.id)}
+          onMove={(pos) => moveIcon(icon.id, pos)}
+        />
+      ))}
 
       {/* App Windows — rendered as React95 Modals that auto-register with TaskBar */}
       {Array.from(openApps).map(id => {
