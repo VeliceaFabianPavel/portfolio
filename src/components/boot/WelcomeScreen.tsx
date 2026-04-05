@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, TitleBar, Button, Input, Frame } from '@react95/core';
+import { Modal, TitleBar, Button, Input } from '@react95/core';
 import { Msrating105 } from '@react95/icons';
 
 interface WelcomeScreenProps {

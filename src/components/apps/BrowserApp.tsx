@@ -1,15 +1,13 @@
 import { useState } from 'react';
 import { Frame, Button } from '@react95/core';
-import { Globe, User } from '@react95/icons';
+import { Globe } from '@react95/icons';
 import { personalInfo } from '../../data/portfolio';
 
-type Page = 'home' | 'github' | 'linkedin' | 'twitter';
+type Page = 'home' | 'github';
 
 const pages: Record<Page, { title: string; url: string }> = {
-  home: { title: 'Home', url: `http://www.${personalInfo.website}` },
+  home: { title: 'Home', url: `http://www.${personalInfo.github}` },
   github: { title: 'GitHub', url: personalInfo.socials.github },
-  linkedin: { title: 'LinkedIn', url: personalInfo.socials.linkedin },
-  twitter: { title: 'Twitter / X', url: personalInfo.socials.twitter },
 };
 
 export function BrowserApp() {
@@ -117,14 +115,6 @@ export function BrowserApp() {
                 <a href="#" onClick={(e) => { e.preventDefault(); navigate('github'); }}
                   style={{ color: '#0000FF', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Globe variant="16x16_4" /> GitHub Profile
-                </a>
-                <a href="#" onClick={(e) => { e.preventDefault(); navigate('linkedin'); }}
-                  style={{ color: '#0000FF', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <User variant="16x16_4" /> LinkedIn Profile
-                </a>
-                <a href="#" onClick={(e) => { e.preventDefault(); navigate('twitter'); }}
-                  style={{ color: '#0000FF', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Globe variant="16x16_4" /> Twitter / X
                 </a>
               </div>
             </div>
