@@ -129,12 +129,14 @@ export function DosBootScreen({ onComplete }: DosBootScreenProps) {
     }
   }, [onComplete]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInput = () => {
     if (winTriggered) return;
-    setInput(e.target.value);
+    if (hiddenInputRef.current) {
+      setInput(hiddenInputRef.current.value);
+    }
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (winTriggered) return;
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -174,8 +176,8 @@ export function DosBootScreen({ onComplete }: DosBootScreenProps) {
       {/* Hidden input to capture typing on both desktop and mobile */}
       <input
         ref={hiddenInputRef}
-        onChange={handleInputChange}
-        onKeyDown={handleInputKeyDown}
+        onInput={handleInput}
+        onKeyDown={handleKeyDown}
         style={{
           position: 'absolute',
           opacity: 0,
