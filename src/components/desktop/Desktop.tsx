@@ -1,0 +1,302 @@
+import { useCallback, useState, useEffect } from 'react';
+import startupSound from '../../assets/win95.mp3';
+import shutdownSound from '../../assets/tada.mp3';
+import { Modal, TitleBar, Button, RadioButton } from '@react95/core';
+import {
+  Computer,
+  Computer4,
+  Explore,
+  Settings,
+  Mail,
+  Notepad,
+  Mshtml32528,
+  RecycleFull,
+  Winmine1,
+  Calculator,
+  HelpBook,
+} from '@react95/icons';
+// React95 core components used by child components
+import { DesktopIcon } from './DesktopIcon';
+import { Window } from './Window';
+import { TaskBar } from './TaskBar';
+import { AboutMe } from '../apps/AboutMe';
+import { ProjectsExplorer } from '../apps/ProjectsExplorer';
+import { SkillsApp } from '../apps/SkillsApp';
+import { ContactApp } from '../apps/ContactApp';
+import { NotepadApp } from '../apps/NotepadApp';
+import { BrowserApp } from '../apps/BrowserApp';
+import { MinesweeperApp } from '../apps/MinesweeperApp';
+import { DosPrompt } from '../apps/DosPrompt';
+import { CalculatorApp } from '../apps/CalculatorApp';
+import { HelpApp } from '../apps/HelpApp';
+import msDosIcon from '../../assets/MsDos_32x32_32.png';
+
+interface DesktopProps {
+  onShutDown: () => void;
+  onRestart: () => void;
+}
+
+interface AppConfig {
+  title: string;
+  icon: React.ComponentType<any> | string;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+}
+
+const appConfigs: Record<string, AppConfig> = {
+  about: {
+    title: 'About Me - System Properties',
+    icon: Computer,
+    position: { x: 60, y: 20 },
+    size: { width: 520, height: 480 },
+  },
+  projects: {
+    title: 'PeP5 — Programming Examination Platform',
+    icon: Explore,
+    position: { x: 0, y: 0 },
+    size: { width: window.innerWidth, height: window.innerHeight - 28 },
+  },
+  skills: {
+    title: 'Skills.exe',
+    icon: Settings,
+    position: { x: 140, y: 25 },
+    size: { width: 480, height: 460 },
+  },
+  contact: {
+    title: 'New Message - Outlook Express',
+    icon: Mail,
+    position: { x: 140, y: 60 },
+    size: { width: 440, height: 400 },
+  },
+  notepad: {
+    title: 'Resume.txt - Notepad',
+    icon: Notepad,
+    position: { x: 100, y: 20 },
+    size: { width: 460, height: 440 },
+  },
+  browser: {
+    title: 'Microsoft Internet Explorer',
+    icon: Mshtml32528,
+    position: { x: 60, y: 15 },
+    size: { width: 540, height: 460 },
+  },
+  minesweeper: {
+    title: 'Minesweeper',
+    icon: Winmine1,
+    position: { x: 200, y: 80 },
+    size: { width: 228, height: 320 },
+  },
+  dos: {
+    title: 'MS-DOS Prompt',
+    icon: msDosIcon,
+    position: { x: 100, y: 50 },
+    size: { width: 560, height: 380 },
+  },
+  help: {
+    title: 'Help Topics',
+    icon: HelpBook,
+    position: { x: 80, y: 30 },
+    size: { width: 480, height: 420 },
+  },
+  calculator: {
+    title: 'Calculator',
+    icon: Calculator,
+    position: { x: 220, y: 100 },
+    size: { width: 260, height: 280 },
+  },
+};
+
+const desktopIcons = [
+  { id: 'about', label: 'About Me', icon: Computer },
+  { id: 'projects', label: 'My Projects', icon: Explore },
+  { id: 'skills', label: 'Skills.exe', icon: Settings },
+  { id: 'contact', label: 'Contact Me', icon: Mail },
+  { id: 'notepad', label: 'Resume.txt', icon: Notepad },
+  { id: 'browser', label: 'Internet\nExplorer', icon: Mshtml32528 },
+  { id: 'minesweeper', label: 'Minesweeper', icon: Winmine1 },
+  { id: 'dos', label: 'MS-DOS\nPrompt', icon: msDosIcon },
+  { id: 'calculator', label: 'Calculator', icon: Calculator },
+  { id: 'help', label: 'Help', icon: HelpBook },
+  { id: 'recycle', label: 'Recycle Bin', icon: RecycleFull },
+];
+
+const appComponents: Record<string, React.ReactNode> = {
+  about: <AboutMe />,
+  projects: <ProjectsExplorer />,
+  skills: <SkillsApp />,
+  contact: <ContactApp />,
+  notepad: <NotepadApp />,
+  browser: <BrowserApp />,
+  minesweeper: <MinesweeperApp />,
+  dos: <DosPrompt />,
+  calculator: <CalculatorApp />,
+  help: <HelpApp />,
+};
+
+function ShutdownDialog({ onYes, onNo }: { onYes: (action: 'shutdown' | 'restart') => void; onNo: () => void }) {
+  const [selected, setSelected] = useState<'shutdown' | 'restart'>('shutdown');
+
+  return (
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999,
+    }}>
+      <div style={{ width: 420 }}>
+        <Modal
+          title="Shut Down Windows"
+          style={{ width: 420, position: 'relative' }}
+          titleBarOptions={[
+            <TitleBar.Close key="close" onClick={onNo} />,
+          ]}
+        >
+          <div style={{ padding: '12px 16px 16px', fontFamily: '"MS Sans Serif", Arial, sans-serif', fontSize: 12 }}>
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', marginBottom: 16 }}>
+              <div style={{ flexShrink: 0, paddingTop: 2 }}>
+                <Computer4 variant="32x32_4" />
+              </div>
+              <div>
+                <div style={{ marginBottom: 12 }}>Are you sure you want to:</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, whiteSpace: 'nowrap' }}>
+                  <RadioButton
+                    checked={selected === 'shutdown'}
+                    onChange={() => setSelected('shutdown')}
+                  >
+                    Shut down the computer?
+                  </RadioButton>
+                  <RadioButton
+                    checked={selected === 'restart'}
+                    onChange={() => setSelected('restart')}
+                  >
+                    Restart the computer?
+                  </RadioButton>
+                </div>
+              </div>
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid #808080', borderBottom: '1px solid #fff', margin: '0 0 12px' }} />
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
+              <Button onClick={() => onYes(selected)} style={{ width: 80 }}>Yes</Button>
+              <Button onClick={onNo} style={{ width: 80 }}>No</Button>
+            </div>
+          </div>
+        </Modal>
+      </div>
+    </div>
+  );
+}
+
+export function Desktop({ onShutDown, onRestart }: DesktopProps) {
+  const [openApps, setOpenApps] = useState<Set<string>>(new Set());
+  const [showShutdownDialog, setShowShutdownDialog] = useState(false);
+
+  useEffect(() => {
+    const audio = new Audio(startupSound);
+    audio.play().catch(() => {});
+  }, []);
+
+
+  const openApp = useCallback((id: string) => {
+    if (id === 'recycle') return;
+    setOpenApps(prev => new Set(prev).add(id));
+  }, []);
+
+  const closeApp = useCallback((id: string) => {
+    setOpenApps(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }, []);
+
+  return (
+    <div style={{
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: '#008080',
+      position: 'relative',
+      overflow: 'hidden',
+      cursor: 'default',
+    }}>
+      {/* Desktop Icons */}
+      <div style={{
+        position: 'absolute',
+        top: '8px',
+        left: '8px',
+        display: 'flex',
+        flexDirection: 'column',
+        flexWrap: 'wrap',
+        gap: '4px',
+        maxHeight: 'calc(100vh - 40px)',
+        alignContent: 'flex-start',
+      }}>
+        {desktopIcons.map(icon => (
+          <DesktopIcon
+            key={icon.id}
+            icon={icon.icon}
+            label={icon.label}
+            onDoubleClick={() => openApp(icon.id)}
+          />
+        ))}
+      </div>
+
+      {/* App Windows — rendered as React95 Modals that auto-register with TaskBar */}
+      {Array.from(openApps).map(id => {
+        const config = appConfigs[id];
+        if (!config) return null;
+        return (
+          <Window
+            key={id}
+            windowState={{
+              id,
+              title: config.title,
+              icon: id === 'dos' ? '' : config.icon,
+              isOpen: true,
+              isMinimized: false,
+              isMaximized: false,
+              zIndex: 10,
+              position: config.position,
+              size: config.size,
+            }}
+            onClose={() => closeApp(id)}
+            onFocus={() => {}}
+          >
+            {appComponents[id]}
+          </Window>
+        );
+      })}
+
+      {/* React95 TaskBar — handles Start button, window buttons, and clock natively */}
+      <TaskBar
+        onOpenApp={openApp}
+        onShutDown={() => setShowShutdownDialog(true)}
+      />
+
+      {/* Shut Down Dialog */}
+      {showShutdownDialog && (
+        <ShutdownDialog
+          onYes={(action) => {
+            setShowShutdownDialog(false);
+            const audio = new Audio(shutdownSound);
+            audio.play().catch(() => {});
+            audio.addEventListener('ended', () => {
+              if (action === 'shutdown') onShutDown();
+              else onRestart();
+            });
+            // Fallback in case 'ended' doesn't fire
+            setTimeout(() => {
+              if (action === 'shutdown') onShutDown();
+              else onRestart();
+            }, 5000);
+          }}
+          onNo={() => setShowShutdownDialog(false)}
+        />
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,29 @@
+/* Windows 95 Portfolio — minimal resets only, let React95 handle the rest */
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  background: #008080;
+}
+
+/* Reset Vite template defaults */
+#root {
+  max-width: none;
+  text-align: left;
+  border: none;
+  display: block;
+  box-sizing: border-box;
+}
+
+
+/* Win95 selection color */
+::selection {
+  background: #000080;
+  color: #fff;
+}
