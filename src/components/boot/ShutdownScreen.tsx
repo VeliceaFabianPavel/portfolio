@@ -12,8 +12,8 @@ export function ShutdownScreen({ mode, onReboot }: ShutdownScreenProps) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (mode === 'restart' && onReboot) {
-        onReboot();
+      if (mode === 'restart') {
+        window.location.reload();
       } else {
         setPhase('safe');
       }
