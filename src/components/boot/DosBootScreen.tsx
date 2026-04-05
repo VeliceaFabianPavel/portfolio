@@ -43,6 +43,7 @@ export function DosBootScreen({ onComplete }: DosBootScreenProps) {
   const [cursor, setCursor] = useState(true);
   const [winTriggered, setWinTriggered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
 
   // Boot info sequence
   useEffect(() => {
@@ -54,6 +55,7 @@ export function DosBootScreen({ onComplete }: DosBootScreenProps) {
       } else {
         clearInterval(timer);
         setBootDone(true);
+        setTimeout(() => hiddenInputRef.current?.focus(), 100);
       }
     }, 40);
     return () => clearInterval(timer);
@@ -161,10 +163,29 @@ export function DosBootScreen({ onComplete }: DosBootScreenProps) {
         <div key={i} style={{ whiteSpace: 'pre', minHeight: '22px' }}>{line}</div>
       ))}
       {bootDone && !winTriggered && (
-        <div style={{ whiteSpace: 'pre', minHeight: '22px' }}>
+        <div
+          style={{ whiteSpace: 'pre', minHeight: '22px' }}
+          onClick={() => hiddenInputRef.current?.focus()}
+        >
           C:\&gt;{input}{cursor ? '_' : '\u00A0'}
         </div>
       )}
+      {/* Hidden input to trigger mobile keyboard */}
+      <input
+        ref={hiddenInputRef}
+        style={{
+          position: 'absolute',
+          opacity: 0,
+          height: 0,
+          width: 0,
+          border: 'none',
+          padding: 0,
+        }}
+        autoCapitalize="off"
+        autoCorrect="off"
+        autoComplete="off"
+        spellCheck={false}
+      />
     </div>
   );
 }
