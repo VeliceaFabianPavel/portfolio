@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface DosBootScreenProps {
   onComplete: () => void;
@@ -74,78 +74,78 @@ export function DosBootScreen({ onComplete }: DosBootScreenProps) {
     }
   }, [lines]);
 
-  // Keyboard input
-  useEffect(() => {
-    if (!bootDone || winTriggered) return;
+  const executeCommand = useCallback((cmd: string) => {
+    const trimmed = cmd.trim().toLowerCase();
+    if (trimmed === 'win') {
+      setLines(prev => [...prev, `C:\\>${cmd}`, '', 'Starting Microsoft Windows 95...', '']);
+      setInput('');
+      setWinTriggered(true);
+      setTimeout(onComplete, 1500);
+    } else if (trimmed === '') {
+      setLines(prev => [...prev, 'C:\\>']);
+    } else if (trimmed === 'help' || trimmed === 'help /?' || trimmed === '?') {
+      setLines(prev => [...prev, `C:\\>${cmd}`, '',
+        'Available commands:',
+        '  WIN      Start Windows 95',
+        '  VER      Display MS-DOS version',
+        '  HELP     Show this help',
+        '  CLS      Clear screen',
+        '  MEM      Display memory usage',
+        '  DATE     Display current date',
+        '  TIME     Display current time',
+        '',
+      ]);
+      setInput('');
+    } else if (trimmed === 'ver') {
+      setLines(prev => [...prev, `C:\\>${cmd}`, '', 'MS-DOS Version 6.22', '']);
+      setInput('');
+    } else if (trimmed === 'cls') {
+      setLines([]);
+      setInput('');
+    } else if (trimmed === 'mem') {
+      setLines(prev => [...prev, `C:\\>${cmd}`, '',
+        '  655360 bytes total conventional memory',
+        '  655360 bytes available to MS-DOS',
+        '  589824 largest executable program size',
+        '',
+        '  67108864 bytes total contiguous extended memory',
+        '  67043328 bytes available contiguous extended memory',
+        '',
+      ]);
+      setInput('');
+    } else if (trimmed === 'date') {
+      const d = new Date();
+      const dateStr = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}-${d.getFullYear()}`;
+      setLines(prev => [...prev, `C:\\>${cmd}`, `Current date is ${dateStr}`, '']);
+      setInput('');
+    } else if (trimmed === 'time') {
+      const d = new Date();
+      const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+      setLines(prev => [...prev, `C:\\>${cmd}`, `Current time is ${timeStr}`, '']);
+      setInput('');
+    } else {
+      setLines(prev => [...prev, `C:\\>${cmd}`, 'Bad command or file name', '']);
+      setInput('');
+    }
+  }, [onComplete]);
 
-    const handleKey = (e: KeyboardEvent) => {
+  // Handle input from hidden input (works on both desktop and mobile)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (winTriggered) return;
+    setInput(e.target.value);
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (winTriggered) return;
+    if (e.key === 'Enter') {
       e.preventDefault();
-      if (e.key === 'Enter') {
-        const cmd = input.trim().toLowerCase();
-        if (cmd === 'win') {
-          setLines(prev => [...prev, `C:\\>${input}`, '', 'Starting Microsoft Windows 95...', '']);
-          setInput('');
-          setWinTriggered(true);
-          setTimeout(onComplete, 1500);
-        } else if (cmd === '') {
-          setLines(prev => [...prev, 'C:\\>']);
-        } else if (cmd === 'help' || cmd === 'help /?' || cmd === '?') {
-          setLines(prev => [...prev, `C:\\>${input}`, '',
-            'Available commands:',
-            '  WIN      Start Windows 95',
-            '  VER      Display MS-DOS version',
-            '  HELP     Show this help',
-            '  CLS      Clear screen',
-            '  MEM      Display memory usage',
-            '  DATE     Display current date',
-            '  TIME     Display current time',
-            '',
-          ]);
-          setInput('');
-        } else if (cmd === 'ver') {
-          setLines(prev => [...prev, `C:\\>${input}`, '', 'MS-DOS Version 6.22', '']);
-          setInput('');
-        } else if (cmd === 'cls') {
-          setLines([]);
-          setInput('');
-        } else if (cmd === 'mem') {
-          setLines(prev => [...prev, `C:\\>${input}`, '',
-            '  655360 bytes total conventional memory',
-            '  655360 bytes available to MS-DOS',
-            '  589824 largest executable program size',
-            '',
-            '  67108864 bytes total contiguous extended memory',
-            '  67043328 bytes available contiguous extended memory',
-            '',
-          ]);
-          setInput('');
-        } else if (cmd === 'date') {
-          const d = new Date();
-          const dateStr = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}-${d.getFullYear()}`;
-          setLines(prev => [...prev, `C:\\>${input}`, `Current date is ${dateStr}`, '']);
-          setInput('');
-        } else if (cmd === 'time') {
-          const d = new Date();
-          const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
-          setLines(prev => [...prev, `C:\\>${input}`, `Current time is ${timeStr}`, '']);
-          setInput('');
-        } else {
-          setLines(prev => [...prev, `C:\\>${input}`, 'Bad command or file name', '']);
-          setInput('');
-        }
-      } else if (e.key === 'Backspace') {
-        setInput(prev => prev.slice(0, -1));
-      } else if (e.key.length === 1) {
-        setInput(prev => prev + e.key);
-      }
-    };
-
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [bootDone, winTriggered, input, onComplete]);
+      executeCommand(input);
+      if (hiddenInputRef.current) hiddenInputRef.current.value = '';
+    }
+  };
 
   return (
-    <div ref={containerRef} style={{
+    <div ref={containerRef} onClick={() => hiddenInputRef.current?.focus()} style={{
       width: '100vw',
       height: '100vh',
       backgroundColor: '#000',
@@ -170,9 +170,12 @@ export function DosBootScreen({ onComplete }: DosBootScreenProps) {
           C:\&gt;{input}{cursor ? '_' : '\u00A0'}
         </div>
       )}
-      {/* Hidden input to trigger mobile keyboard */}
+      {/* Hidden input to capture typing on both desktop and mobile */}
       <input
         ref={hiddenInputRef}
+        value={input}
+        onChange={handleInputChange}
+        onKeyDown={handleInputKeyDown}
         style={{
           position: 'absolute',
           opacity: 0,
