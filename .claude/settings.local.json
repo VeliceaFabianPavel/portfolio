@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node -e ':*)",
+      "WebSearch",
+      "WebFetch(domain:v8.js-dos.com)",
+      "WebFetch(domain:js-dos.com)",
+      "Bash(npm run:*)",
+      "Bash(curl -sI \"https://cdn.dos.zone/custom/dos/doom.jsdos?anonymous=1\")",
+      "Bash(curl -sI \"https://v8.js-dos.com/latest/js-dos.js\")",
+      "Bash(curl -sL -o c:/Users/fabia/Desktop/cercetare/pep_app/portfolio/public/doom.jsdos \"https://cdn.dos.zone/custom/dos/doom.jsdos?anonymous=1\")",
+      "WebFetch(domain:github.com)",
+      "Bash(curl -sL \"https://gmh-code.github.io/dwasm/\" -o /tmp/dwasm.html)",
+      "Read(//tmp/**)"
+    ]
+  }
+}

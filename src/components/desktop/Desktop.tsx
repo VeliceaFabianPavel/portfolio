@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef, lazy, Suspense } from 'react';
 import shutdownSound from '../../assets/tada.mp3';
 import { Modal, TitleBar, Button, RadioButton } from '@react95/core';
 import {
@@ -32,6 +32,23 @@ import { HelpApp } from '../apps/HelpApp';
 import { DisplayApp } from '../apps/DisplayApp';
 import msDosIcon from '../../assets/MsDos_32x32_32.png';
 import { loadBackground, saveBackground, getBackgroundStyle, type DesktopBackground } from '../../wallpapers';
+
+// Lazy so the js-dos loader code is only fetched if the egg is triggered.
+const DoomEasterEgg = lazy(() =>
+  import('../DoomEasterEgg').then(m => ({ default: m.DoomEasterEgg })),
+);
+
+// Konami code (classic + Enter). Shift must be held throughout to
+// trigger the DOOM egg. Enter is the "start" button on the original
+// arcade/NES input and it keeps Konami detection off of users who
+// type "ba" at the end of a word by accident.
+const KONAMI_SEQUENCE = [
+  'ArrowUp', 'ArrowUp',
+  'ArrowDown', 'ArrowDown',
+  'ArrowLeft', 'ArrowRight',
+  'ArrowLeft', 'ArrowRight',
+  'b', 'a', 'Enter',
+] as const;
 
 interface DesktopProps {
   onShutDown: () => void;
@@ -229,6 +246,9 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
   const [showShutdownDialog, setShowShutdownDialog] = useState(false);
   const [background, setBackground] = useState<DesktopBackground>(loadBackground);
   const [iconPositions, setIconPositions] = useState(loadIconPositions);
+  const [doomOpen, setDoomOpen] = useState(false);
+  const konamiProgress = useRef(0);
+  const konamiShiftHeld = useRef(true);
 
   const moveIcon = useCallback((id: string, pos: { x: number; y: number }) => {
     setIconPositions(prev => {
@@ -238,7 +258,8 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
     });
   }, []);
 
-  // F3 = reset icon positions, Shift+F3 = reset everything
+  // F3 = reset icon positions, Shift+F3 = reset everything.
+  // Shift+Konami (↑↑↓↓←→←→BA) = launch actual DOOM easter egg.
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'F3') {
@@ -257,11 +278,43 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
           setIconPositions(defaults);
           saveIconPositions(defaults);
         }
+        return;
+      }
+
+      // Don't track Konami while Doom is already open — let the game own the keys.
+      if (doomOpen) return;
+
+      // Konami tracking. Match case-insensitively for the final B / A.
+      const expected = KONAMI_SEQUENCE[konamiProgress.current];
+      const pressed = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      const target = expected.length === 1 ? expected.toLowerCase() : expected;
+
+      if (pressed === target) {
+        if (!e.shiftKey) konamiShiftHeld.current = false;
+        konamiProgress.current += 1;
+        if (konamiProgress.current === KONAMI_SEQUENCE.length) {
+          const shiftWasHeld = konamiShiftHeld.current;
+          konamiProgress.current = 0;
+          konamiShiftHeld.current = true;
+          if (shiftWasHeld) {
+            e.preventDefault();
+            setDoomOpen(true);
+          }
+        }
+      } else {
+        // Allow a wrong press to also *start* a new sequence if it matches step 0.
+        konamiProgress.current = 0;
+        konamiShiftHeld.current = true;
+        const firstTarget = KONAMI_SEQUENCE[0];
+        if (pressed === (firstTarget.length === 1 ? firstTarget.toLowerCase() : firstTarget)) {
+          konamiProgress.current = 1;
+          if (!e.shiftKey) konamiShiftHeld.current = false;
+        }
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  }, [doomOpen]);
 
   const applyBackground = useCallback((bg: DesktopBackground) => {
     setBackground(bg);
@@ -367,6 +420,14 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
         onOpenApp={openApp}
         onShutDown={() => setShowShutdownDialog(true)}
       />
+
+      {/* DOOM easter egg — Shift+Konami launches the real game fullscreen.
+          Rendered above everything; closing returns to the desktop. */}
+      {doomOpen && (
+        <Suspense fallback={null}>
+          <DoomEasterEgg onClose={() => setDoomOpen(false)} />
+        </Suspense>
+      )}
 
       {/* Shut Down Dialog */}
       {showShutdownDialog && (

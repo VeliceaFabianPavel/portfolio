@@ -27,3 +27,10 @@ body {
   background: #000080;
   color: #fff;
 }
+
+/* DOOM easter egg — Dwasm canvas uses pixel-perfect scaling. */
+.doom-egg-host canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
