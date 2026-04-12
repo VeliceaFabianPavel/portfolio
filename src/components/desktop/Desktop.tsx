@@ -33,6 +33,23 @@ import { DisplayApp } from '../apps/DisplayApp';
 import msDosIcon from '../../assets/MsDos_32x32_32.png';
 import { loadBackground, saveBackground, getBackgroundStyle, type DesktopBackground } from '../../wallpapers';
 
+// Lazy so the js-dos loader code is only fetched if the egg is triggered.
+const DoomEasterEgg = lazy(() =>
+  import('../DoomEasterEgg').then(m => ({ default: m.DoomEasterEgg })),
+);
+
+// Konami code (classic + Enter). Shift must be held throughout to
+// trigger the DOOM egg. Enter is the "start" button on the original
+// arcade/NES input and it keeps Konami detection off of users who
+// type "ba" at the end of a word by accident.
+const KONAMI_SEQUENCE = [
+  'ArrowUp', 'ArrowUp',
+  'ArrowDown', 'ArrowDown',
+  'ArrowLeft', 'ArrowRight',
+  'ArrowLeft', 'ArrowRight',
+  'b', 'a', 'Enter',
+] as const;
+
 interface DesktopProps {
   onShutDown: () => void;
   onRestart: () => void;
@@ -229,6 +246,9 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
   const [showShutdownDialog, setShowShutdownDialog] = useState(false);
   const [background, setBackground] = useState<DesktopBackground>(loadBackground);
   const [iconPositions, setIconPositions] = useState(loadIconPositions);
+  const [doomOpen, setDoomOpen] = useState(false);
+  const konamiProgress = useRef(0);
+  const konamiShiftHeld = useRef(true);
 
   const moveIcon = useCallback((id: string, pos: { x: number; y: number }) => {
     setIconPositions(prev => {
@@ -406,6 +426,14 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
         onOpenApp={openApp}
         onShutDown={() => { playChimes(); setShowShutdownDialog(true); }}
       />
+
+      {/* DOOM easter egg — Shift+Konami launches the real game fullscreen.
+          Rendered above everything; closing returns to the desktop. */}
+      {doomOpen && (
+        <Suspense fallback={null}>
+          <DoomEasterEgg onClose={() => setDoomOpen(false)} />
+        </Suspense>
+      )}
 
       {/* Shut Down Dialog */}
       {showShutdownDialog && (
