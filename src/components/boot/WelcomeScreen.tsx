@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Modal, TitleBar, Button, Input } from '@react95/core';
+import { Modal, TitleBar, Button, Input, Alert } from '@react95/core';
 import { Msrating105 } from '@react95/icons';
 import { loadBackground, getBackgroundStyle } from '../../wallpapers';
-import startupSound from '../../assets/win95.mp3';
+import startupSound from '../../assets/the-microsoft-sound.wav';
+import { playChord } from '../../sounds';
 
 interface WelcomeScreenProps {
   onComplete: () => void;
@@ -10,6 +11,7 @@ interface WelcomeScreenProps {
 
 export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
   const [password, setPassword] = useState('');
+  const [showError, setShowError] = useState(false);
 
   const handleOk = () => {
     if (password === 'portfolio') {
@@ -17,6 +19,8 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
       audio.play().catch(() => {});
       onComplete();
     } else {
+      playChord();
+      setShowError(true);
       setPassword('');
     }
   };
@@ -90,6 +94,23 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
           </div>
         </Modal>
       </div>
+
+      {showError && (
+        <Alert
+          title="Logon Message"
+          type="error"
+          message="Incorrect password."
+          buttons={[{ value: 'OK', onClick: () => setShowError(false) }]}
+          closeAlert={() => setShowError(false)}
+          dragOptions={{
+            defaultPosition: {
+              x: Math.floor(window.innerWidth / 2) - 150,
+              y: Math.floor(window.innerHeight / 2) - 60,
+            },
+          }}
+          style={{ zIndex: 9999 }}
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Frame, Fieldset } from '@react95/core';
+import { Frame, Fieldset, Avatar } from '@react95/core';
 import { Computer, Globe } from '@react95/icons';
 import { personalInfo, workExperience, education, publications } from '../../data/portfolio';
 
@@ -43,9 +43,9 @@ export function AboutMe() {
         {tab === 'General' && (
           <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
             <div style={{ flexShrink: 0 }}>
-              <Frame boxShadow="in" style={{ padding: 8, backgroundColor: '#fff' }}>
+              <Avatar size="64px">
                 <Computer variant="32x32_4" />
-              </Frame>
+              </Avatar>
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 16, fontWeight: 'bold', color: '#000080', marginBottom: 2 }}>

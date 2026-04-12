@@ -1,14 +1,16 @@
 import { useState, useRef } from 'react';
+import { Tooltip } from '@react95/core';
 
 interface DesktopIconProps {
   icon: React.ComponentType<any> | string;
   label: string;
+  tooltip?: string;
   position: { x: number; y: number };
   onDoubleClick: () => void;
   onMove: (pos: { x: number; y: number }) => void;
 }
 
-export function DesktopIcon({ icon: Icon, label, position, onDoubleClick, onMove }: DesktopIconProps) {
+export function DesktopIcon({ icon: Icon, label, tooltip, position, onDoubleClick, onMove }: DesktopIconProps) {
   const [selected, setSelected] = useState(false);
   const dragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0 });
@@ -86,28 +88,36 @@ export function DesktopIcon({ icon: Icon, label, position, onDoubleClick, onMove
       onBlur={() => setSelected(false)}
       tabIndex={0}
     >
-      <div style={{
-        padding: '2px',
-        backgroundColor: selected ? 'rgba(0,0,128,0.4)' : 'transparent',
-      }}>
-        {typeof Icon === 'string' ? <img src={Icon} alt="" style={{ width: 32, height: 32, pointerEvents: 'none' }} /> : <Icon variant="32x32_4" />}
-      </div>
-      <span style={{
-        color: '#fff',
-        fontSize: '11px',
-        fontFamily: '"MS Sans Serif", Arial, sans-serif',
-        textAlign: 'center',
-        marginTop: '2px',
-        textShadow: '1px 1px 1px rgba(0,0,0,0.8)',
-        backgroundColor: selected ? '#000080' : 'transparent',
-        padding: '1px 2px',
-        lineHeight: '1.2',
-        wordBreak: 'break-word',
-        maxWidth: '68px',
-        pointerEvents: 'none',
-      }}>
-        {label}
-      </span>
+      <Tooltip text={tooltip || label.replace('\n', ' ')} delay={800}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}>
+          <div style={{
+            padding: '2px',
+            backgroundColor: selected ? 'rgba(0,0,128,0.4)' : 'transparent',
+          }}>
+            {typeof Icon === 'string' ? <img src={Icon} alt="" style={{ width: 32, height: 32, pointerEvents: 'none' }} /> : <Icon variant="32x32_4" />}
+          </div>
+          <span style={{
+            color: '#fff',
+            fontSize: '11px',
+            fontFamily: '"MS Sans Serif", Arial, sans-serif',
+            textAlign: 'center',
+            marginTop: '2px',
+            textShadow: '1px 1px 1px rgba(0,0,0,0.8)',
+            backgroundColor: selected ? '#000080' : 'transparent',
+            padding: '1px 2px',
+            lineHeight: '1.2',
+            wordBreak: 'break-word',
+            maxWidth: '68px',
+            pointerEvents: 'none',
+          }}>
+            {label}
+          </span>
+        </div>
+      </Tooltip>
     </div>
   );
 }

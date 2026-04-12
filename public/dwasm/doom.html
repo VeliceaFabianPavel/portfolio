@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>DOOM</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+      }
+      #canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas" tabindex="-1" oncontextmenu="return false"></canvas>
+    <script>
+      // Minimal Dwasm host page — stock upstream behaviour.
+      //
+      // The React parent mounts this in an iframe so closing the easter
+      // egg tears down the whole JS context (WASM heap + SDL_mixer audio
+      // context) in one go. That's the only reliable way to stop audio
+      // on close and avoid double-stacking engines on re-open.
+      //
+      // We do NOT write a custom prboom.cfg, pass -warp, or override
+      // the midi player. Dwasm boots exactly as upstream does.
+      var Module = {
+        canvas: document.getElementById("canvas"),
+        arguments: ["-iwad", "doom.wad"],
+        locateFile: function (path) { return path; },
+        preRun: [function () {
+          // Preload the IWAD. createPreloadedFile registers a run
+          // dependency so main() blocks until the fetch completes.
+          FS.createPreloadedFile("/", "doom.wad", "doom.wad", true, false);
+        }],
+        print: function (t) { try { console.log("[doom]", t); } catch (_) {} },
+        printErr: function (t) { try { console.warn("[doom]", t); } catch (_) {} },
+        setStatus: function (t) {
+          if (!t) {
+            try { parent.postMessage({ type: "doom-ready" }, "*"); } catch (_) {}
+            return;
+          }
+          try { parent.postMessage({ type: "doom-progress", text: String(t) }, "*"); } catch (_) {}
+        },
+        onAbort: function (reason) {
+          try { parent.postMessage({ type: "doom-error", reason: String(reason) }, "*"); } catch (_) {}
+        },
+        _canLockPointer: true,
+      };
+
+      // Click-to-capture pointer, matching upstream Dwasm behaviour.
+      document.getElementById("canvas").addEventListener("click", function () {
+        if (document.pointerLockElement !== this && this.requestPointerLock) {
+          try { this.requestPointerLock(); } catch (_) {}
+        }
+      });
+
+      // Shift+Escape is our close affordance (plain Escape is Doom's
+      // in-game menu, so we must not hijack it). Capture phase runs
+      // before Emscripten's SDL handler, so stopPropagation keeps SDL
+      // from ever seeing the keypress.
+      window.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && e.shiftKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          try { parent.postMessage({ type: "doom-close-request" }, "*"); } catch (_) {}
+        }
+      }, true);
+    </script>
+    <script src="index.js" async></script>
+  </body>
+</html>

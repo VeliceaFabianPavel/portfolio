@@ -27,3 +27,25 @@ body {
   background: #000080;
   color: #fff;
 }
+
+/* Win95 cursors — base64 bitmaps from React95's Cursor module,
+   applied globally so they cascade through all child elements. */
+*, *::before, *::after {
+  cursor: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAh0lEQVRYhe2WSwrAIAxEJ6H3v3K6MaX110WbzCYPRNTFPKOIAGAgoq2nSSgAmBlNwitAk9D7gCGh/US2xCCQLTEVyJRYCmRJbAUyJI7VgogMLgCGya88KjAJla79ziXQwsUlUi+hh0eHLQW68NQqKEg7d3bh1ioQekSv7wAbA/nHVBRFURThnD/uMROGdeAFAAAAAElFTkSuQmCC), auto;
+}
+a, button, [role="button"], input[type="submit"], input[type="button"],
+label, select, summary, [tabindex]:not([tabindex="-1"]) {
+  cursor: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAmklEQVRYhe2W0Q6AIAhFwfX/v0wPybLSaXqJHjhbWw8FR6CUqI7kyxyuJRc5cjNz6xkYyTJ4CKAETAdy62Y/B7KUgA3mqxaIiArBqjI9A4XIsoDQ5IoQEkkD1YJp/+/3SC4tGE2ClElExPmX64JWwE3i8RVY9XpEwKUKS3sBYru+C3xeBffdsLVc6Q0j6rT03wosvh8EQRAMswM0QjoRL/LEagAAAABJRU5ErkJggg==), pointer !important;
+}
+input[type="text"], input[type="password"], input[type="email"],
+input[type="search"], input[type="url"], input[type="tel"],
+input[type="number"], textarea, [contenteditable="true"] {
+  cursor: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAYUlEQVRYhe2VQQqAMAwEXfH/X14vIiFNQcTUy8wtgWaHHBptCduOtSRVvfzuLUfVzPNjnVx6BGJIsYB1XMnuNNi7BiOAAAIIIPCU4RjN/v3YX32OJekO/+Mcfx4KAAAAkRPQ3S0e3gpbvAAAAABJRU5ErkJggg==), text !important;
+}
+
+/* DOOM easter egg — Dwasm canvas uses pixel-perfect scaling. */
+.doom-egg-host canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+

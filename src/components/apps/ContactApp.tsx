@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Frame, Input, TextArea, Button, Fieldset } from '@react95/core';
 import { personalInfo } from '../../data/portfolio';
+import { playDing } from '../../sounds';
 
 export function ContactApp() {
   const [name, setName] = useState('');
@@ -15,6 +16,7 @@ export function ContactApp() {
       const mailtoSubject = encodeURIComponent(subject || `Message from ${name}`);
       const mailtoBody = encodeURIComponent(`From: ${name} (${email})\n\n${message}`);
       window.open(`mailto:${personalInfo.email}?subject=${mailtoSubject}&body=${mailtoBody}`);
+      playDing();
       setSent(true);
       setTimeout(() => setSent(false), 3000);
     }

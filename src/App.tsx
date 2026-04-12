@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import '@react95/core/GlobalStyle';
 import '@react95/core/themes/win95.css';
+
 import { BiosScreen } from './components/boot/BiosScreen';
 import { LoadingScreen } from './components/boot/LoadingScreen';
 import { DosBootScreen } from './components/boot/DosBootScreen';

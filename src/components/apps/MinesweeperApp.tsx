@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Frame } from '@react95/core';
+import { playChord, playDing } from '../../sounds';
 
 type CellState = {
   isMine: boolean;
@@ -83,6 +84,7 @@ export function MinesweeperApp() {
       setBoard(newBoard);
       setGameOver(true);
       setFace('dead');
+      playChord();
       return;
     }
 
@@ -108,6 +110,7 @@ export function MinesweeperApp() {
       setWon(true);
       setGameOver(true);
       setFace('cool');
+      playDing();
     }
 
     setBoard(newBoard);

@@ -1,6 +1,6 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef, lazy, Suspense } from 'react';
 import shutdownSound from '../../assets/tada.mp3';
-import { Modal, TitleBar, Button, RadioButton } from '@react95/core';
+import { Modal, TitleBar, Button, RadioButton, Alert } from '@react95/core';
 import {
   Computer,
   Computer4,
@@ -115,18 +115,18 @@ const appConfigs: Record<string, AppConfig> = {
 };
 
 const desktopIcons = [
-  { id: 'about', label: 'About Me', icon: Computer },
-  { id: 'projects', label: 'My Projects', icon: Explore },
-  { id: 'skills', label: 'Skills.exe', icon: Settings },
-  { id: 'contact', label: 'Contact Me', icon: Mail },
-  { id: 'notepad', label: 'Resume.txt', icon: Notepad },
-  { id: 'browser', label: 'Internet\nExplorer', icon: Mshtml32528 },
-  { id: 'minesweeper', label: 'Minesweeper', icon: Winmine1 },
-  { id: 'dos', label: 'MS-DOS\nPrompt', icon: msDosIcon },
-  { id: 'calculator', label: 'Calculator', icon: Calculator },
-  { id: 'help', label: 'Help', icon: HelpBook },
-  { id: 'display', label: 'Display\nProperties', icon: Desk100 },
-  { id: 'recycle', label: 'Recycle Bin', icon: RecycleFull },
+  { id: 'about', label: 'About Me', icon: Computer, tooltip: 'View system properties and personal info' },
+  { id: 'projects', label: 'My Projects', icon: Explore, tooltip: 'Browse my projects and research' },
+  { id: 'skills', label: 'Skills.exe', icon: Settings, tooltip: 'Technical skills and proficiencies' },
+  { id: 'contact', label: 'Contact Me', icon: Mail, tooltip: 'Send me a message via Outlook Express' },
+  { id: 'notepad', label: 'Resume.txt', icon: Notepad, tooltip: 'Open resume in Notepad' },
+  { id: 'browser', label: 'Internet\nExplorer', icon: Mshtml32528, tooltip: 'Browse the World Wide Web' },
+  { id: 'minesweeper', label: 'Minesweeper', icon: Winmine1, tooltip: 'Play Minesweeper' },
+  { id: 'dos', label: 'MS-DOS\nPrompt', icon: msDosIcon, tooltip: 'Open an MS-DOS command prompt' },
+  { id: 'calculator', label: 'Calculator', icon: Calculator, tooltip: 'Performs basic arithmetic' },
+  { id: 'help', label: 'Help', icon: HelpBook, tooltip: 'Windows Help and keyboard shortcuts' },
+  { id: 'display', label: 'Display\nProperties', icon: Desk100, tooltip: 'Change desktop wallpaper and appearance' },
+  { id: 'recycle', label: 'Recycle Bin', icon: RecycleFull, tooltip: 'Contains deleted files and folders' },
 ];
 
 const ICON_STORAGE_KEY = 'win95-icon-positions';
@@ -238,7 +238,8 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
     });
   }, []);
 
-  // F3 = reset icon positions, Shift+F3 = reset everything
+  // F3 = reset icon positions, Shift+F3 = reset everything.
+  // Shift+Konami (↑↑↓↓←→←→BA) = launch actual DOOM easter egg.
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'F3') {
@@ -257,11 +258,43 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
           setIconPositions(defaults);
           saveIconPositions(defaults);
         }
+        return;
+      }
+
+      // Don't track Konami while Doom is already open — let the game own the keys.
+      if (doomOpen) return;
+
+      // Konami tracking. Match case-insensitively for the final B / A.
+      const expected = KONAMI_SEQUENCE[konamiProgress.current];
+      const pressed = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      const target = expected.length === 1 ? expected.toLowerCase() : expected;
+
+      if (pressed === target) {
+        if (!e.shiftKey) konamiShiftHeld.current = false;
+        konamiProgress.current += 1;
+        if (konamiProgress.current === KONAMI_SEQUENCE.length) {
+          const shiftWasHeld = konamiShiftHeld.current;
+          konamiProgress.current = 0;
+          konamiShiftHeld.current = true;
+          if (shiftWasHeld) {
+            e.preventDefault();
+            setDoomOpen(true);
+          }
+        }
+      } else {
+        // Allow a wrong press to also *start* a new sequence if it matches step 0.
+        konamiProgress.current = 0;
+        konamiShiftHeld.current = true;
+        const firstTarget = KONAMI_SEQUENCE[0];
+        if (pressed === (firstTarget.length === 1 ? firstTarget.toLowerCase() : firstTarget)) {
+          konamiProgress.current = 1;
+          if (!e.shiftKey) konamiShiftHeld.current = false;
+        }
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  }, [doomOpen]);
 
   const applyBackground = useCallback((bg: DesktopBackground) => {
     setBackground(bg);
@@ -285,7 +318,11 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
 
 
   const openApp = useCallback((id: string) => {
-    if (id === 'recycle') return;
+    if (id === 'recycle') {
+      playDing();
+      setRecycleBinAlert(true);
+      return;
+    }
     setOpenApps(prev => new Set(prev).add(id));
   }, []);
 
@@ -298,6 +335,7 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
   }, []);
 
   return (
+    <ClippyProvider agentName="Clippy">
     <div style={{
       width: '100vw',
       height: '100vh',
@@ -330,6 +368,7 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
           key={icon.id}
           icon={icon.icon}
           label={icon.label}
+          tooltip={icon.tooltip}
           position={iconPositions[icon.id] ?? { x: 8, y: 8 }}
           onDoubleClick={() => openApp(icon.id)}
           onMove={(pos) => moveIcon(icon.id, pos)}
@@ -365,7 +404,7 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
       {/* React95 TaskBar — handles Start button, window buttons, and clock natively */}
       <TaskBar
         onOpenApp={openApp}
-        onShutDown={() => setShowShutdownDialog(true)}
+        onShutDown={() => { playChimes(); setShowShutdownDialog(true); }}
       />
 
       {/* Shut Down Dialog */}
@@ -388,6 +427,9 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
           onNo={() => setShowShutdownDialog(false)}
         />
       )}
+
+      <ClippyAssistant openApps={openApps} onOpenApp={openApp} />
     </div>
+    </ClippyProvider>
   );
 }
