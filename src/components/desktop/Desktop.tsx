@@ -1,6 +1,9 @@
 import { useCallback, useState, useEffect, useRef, lazy, Suspense } from 'react';
 import shutdownSound from '../../assets/tada.mp3';
 import { Modal, TitleBar, Button, RadioButton, Alert } from '@react95/core';
+import { ClippyProvider } from '@react95/clippy';
+import { ClippyAssistant } from '../ClippyAssistant';
+import { playDing, playChimes } from '../../sounds';
 import {
   Computer,
   Computer4,
@@ -247,6 +250,7 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
   const [background, setBackground] = useState<DesktopBackground>(loadBackground);
   const [iconPositions, setIconPositions] = useState(loadIconPositions);
   const [doomOpen, setDoomOpen] = useState(false);
+  const [recycleBinAlert, setRecycleBinAlert] = useState(false);
   const konamiProgress = useRef(0);
   const konamiShiftHeld = useRef(true);
 
@@ -453,6 +457,16 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
             }, 5000);
           }}
           onNo={() => setShowShutdownDialog(false)}
+        />
+      )}
+
+      {recycleBinAlert && (
+        <Alert
+          type="info"
+          title="Recycle Bin"
+          message="The Recycle Bin is empty."
+          closeAlert={() => setRecycleBinAlert(false)}
+          dragOptions={{ defaultPosition: { x: Math.round(window.innerWidth / 2 - 150), y: Math.round(window.innerHeight / 2 - 60) } }}
         />
       )}
 

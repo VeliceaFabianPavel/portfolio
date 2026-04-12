@@ -76,7 +76,7 @@ export function ClippyAssistant({ openApps, onOpenApp }: ClippyAssistantProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const [secretMenu, setSecretMenu] = useState(false);
-  const idleTimer = useRef<ReturnType<typeof setInterval>>();
+  const idleTimer = useRef<ReturnType<typeof setInterval>>(undefined);
   const lastTipIndex = useRef(-1);
   const hidden = useRef(false);
 
