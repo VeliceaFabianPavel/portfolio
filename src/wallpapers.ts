@@ -27,7 +27,7 @@ export const wallpapers: WallpaperOption[] = [
 
 // Win95 default 16 colors
 export const win95Colors = [
-  { name: 'Teal (Default)', value: '#008080' },
+  { name: 'Teal (Default)', value: '#55AAAA' },
   { name: 'Black', value: '#000000' },
   { name: 'Dark Red', value: '#800000' },
   { name: 'Dark Green', value: '#008000' },
@@ -58,7 +58,7 @@ export function loadBackground(): DesktopBackground {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return JSON.parse(saved);
   } catch { /* ignore */ }
-  return { type: 'color', value: '#008080' };
+  return { type: 'color', value: '#55AAAA' };
 }
 
 export function saveBackground(bg: DesktopBackground): void {
@@ -70,7 +70,7 @@ export function getBackgroundStyle(bg: DesktopBackground): React.CSSProperties {
     return { backgroundColor: bg.value };
   }
   const wp = wallpapers.find(w => w.name === bg.value);
-  if (!wp) return { backgroundColor: '#008080' };
+  if (!wp) return { backgroundColor: '#55AAAA ' };
   if (wp.type === 'stretch') {
     return {
       backgroundImage: `url("${wp.src}")`,

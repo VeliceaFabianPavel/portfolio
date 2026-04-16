@@ -249,8 +249,22 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
   const [showShutdownDialog, setShowShutdownDialog] = useState(false);
   const [background, setBackground] = useState<DesktopBackground>(loadBackground);
   const [iconPositions, setIconPositions] = useState(loadIconPositions);
+  const [appSizes, setAppSizes] = useState<Record<string, { width: number; height: number }>>({});
   const [doomOpen, setDoomOpen] = useState(false);
   const [recycleBinAlert, setRecycleBinAlert] = useState(false);
+
+  const resizeApp = useCallback((id: string, size: { width: number; height: number }) => {
+    setAppSizes(prev => {
+      const cur = prev[id];
+      if (cur && cur.width === size.width && cur.height === size.height) return prev;
+      return { ...prev, [id]: size };
+    });
+  }, []);
+
+  const resizeMinesweeper = useCallback(
+    (size: { width: number; height: number }) => resizeApp('minesweeper', size),
+    [resizeApp]
+  );
   const konamiProgress = useRef(0);
   const konamiShiftHeld = useRef(true);
 
@@ -332,7 +346,7 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
     contact: <ContactApp />,
     notepad: <NotepadApp />,
     browser: <BrowserApp />,
-    minesweeper: <MinesweeperApp />,
+    minesweeper: <MinesweeperApp onResize={resizeMinesweeper} />,
     dos: <DosPrompt />,
     calculator: <CalculatorApp />,
     help: <HelpApp />,
@@ -406,6 +420,7 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
         return (
           <Window
             key={id}
+            overflow={id === 'minesweeper' ? 'hidden' : 'auto'}
             windowState={{
               id,
               title: config.title,
@@ -415,7 +430,7 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
               isMaximized: false,
               zIndex: 10,
               position: config.position,
-              size: config.size,
+              size: appSizes[id] ?? config.size,
             }}
             onClose={() => closeApp(id)}
             onFocus={() => {}}

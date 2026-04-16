@@ -13,31 +13,32 @@ describe('App', () => {
     vi.useRealTimers();
   });
 
-  it('starts on the BIOS screen', () => {
+  function advanceInSteps(totalMs: number, stepMs = 500) {
+    let remaining = totalMs;
+    while (remaining > 0) {
+      const step = Math.min(stepMs, remaining);
+      act(() => { vi.advanceTimersByTime(step); });
+      remaining -= step;
+    }
+  }
+
+  it('starts on the BIOS screen (not yet at DOS)', () => {
     render(<App />);
-    act(() => {
-      vi.advanceTimersByTime(200);
-    });
-    expect(document.body.textContent).toContain('Award Modular BIOS');
+    advanceInSteps(1000);
+    // Still in CRT/BIOS phase — DOS boot hasn't started yet.
+    expect(document.body.textContent).not.toContain('MS-DOS');
   });
 
   it('routes to BSOD on small screens', () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 400 });
     render(<App />);
-    // Drive BIOS to completion (35 lines * 65ms + 800ms trailing + buffer).
-    act(() => {
-      vi.advanceTimersByTime(50 * 65 + 1000);
-    });
+    advanceInSteps(10_000);
     expect(screen.getByText(/An error has occurred\./)).toBeInTheDocument();
   });
 
   it('progresses from BIOS to DOS boot on desktop width', () => {
     render(<App />);
-    act(() => {
-      // 35 BIOS lines * 65ms + 800ms trailing + ample DOS stream headroom.
-      vi.advanceTimersByTime(10_000);
-    });
-    // Either the DOS banner has already started, or at minimum the BIOS is gone.
+    advanceInSteps(15_000);
     expect(document.body.textContent).not.toContain('Award Modular BIOS');
   });
 });

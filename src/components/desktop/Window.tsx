@@ -6,6 +6,7 @@ interface WindowProps {
   onClose: () => void;
   onFocus: () => void;
   children: React.ReactNode;
+  overflow?: 'auto' | 'hidden' | 'visible';
 }
 
 export function Window({
@@ -13,6 +14,7 @@ export function Window({
   onClose,
   onFocus,
   children,
+  overflow = 'auto',
 }: WindowProps) {
   const Icon = windowState.icon;
 
@@ -37,7 +39,7 @@ export function Window({
           height: windowState.size.height,
           zIndex: windowState.zIndex,
           resize: 'both',
-          overflow: 'auto',
+          overflow,
         }}
         titleBarOptions={[
           <TitleBar.Close key="close" onClick={onClose} />,

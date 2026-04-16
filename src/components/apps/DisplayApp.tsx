@@ -70,7 +70,7 @@ export function DisplayApp({ current, onApply }: DisplayAppProps) {
                 }}>
                   {/* None option */}
                   <div
-                    onClick={() => setSelected({ type: 'color', value: selected.type === 'color' ? selected.value : '#008080' })}
+                    onClick={() => setSelected({ type: 'color', value: selected.type === 'color' ? selected.value : '#55AAAA' })}
                     style={{
                       padding: '1px 4px',
                       cursor: 'pointer',
