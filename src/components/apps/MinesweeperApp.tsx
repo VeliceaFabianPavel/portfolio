@@ -76,7 +76,7 @@ function DigitDisplay({ value }: { value: number }) {
   const clamped = Math.max(0, Math.min(999, value));
   const s = String(clamped).padStart(3, '0');
   return (
-    <Frame boxShadow="in" style={{
+    <Frame boxShadow="in" aria-label={s} style={{
       backgroundColor: '#000',
       padding: '1px',
       display: 'flex',

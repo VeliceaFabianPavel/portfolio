@@ -24,7 +24,7 @@ describe('MinesweeperApp', () => {
   it('starts with 10 mines to find', () => {
     render(<MinesweeperApp />);
     // Counter displays as 3-digit padded number — "010".
-    expect(screen.getByText('010')).toBeInTheDocument();
+    expect(screen.getByLabelText('010')).toBeInTheDocument();
   });
 
   it('face is smiling initially', () => {
@@ -37,7 +37,7 @@ describe('MinesweeperApp', () => {
     const faceBtn = screen.getByRole('button');
     await userEvent.click(faceBtn);
     // Should still show 010 flags after reset.
-    expect(screen.getByText('010')).toBeInTheDocument();
+    expect(screen.getByLabelText('010')).toBeInTheDocument();
   });
 
   it('right-click places a flag and updates counter', async () => {
@@ -47,7 +47,7 @@ describe('MinesweeperApp', () => {
     const lastCell = cells[cells.length - 1] as HTMLElement;
     fireEvent.contextMenu(lastCell);
     // One flag placed -> 10-1 = 9 => "009"
-    expect(screen.getByText('009')).toBeInTheDocument();
+    expect(screen.getByLabelText('009')).toBeInTheDocument();
   });
 
   it('clicking a mine triggers game over', async () => {

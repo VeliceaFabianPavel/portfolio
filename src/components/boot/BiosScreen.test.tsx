@@ -23,7 +23,7 @@ describe('BiosScreen', () => {
   it('shows the spark line during early startup', () => {
     const { container } = render(<BiosScreen onComplete={() => {}} />);
     advanceSteps(500);
-    const spark = container.querySelector('div[style*="radial-gradient"]');
+    const spark = container.querySelector('.crt-dot, .crt-hline');
     expect(spark).toBeInTheDocument();
   });
 
@@ -38,13 +38,13 @@ describe('BiosScreen', () => {
     render(<BiosScreen onComplete={() => {}} />);
     advanceSteps(4000);
     const content = document.body.textContent ?? '';
-    expect(content).toContain('BIOS');
+    expect(content).toContain('Pentium');
   });
 
   it('has scanline overlay on the final screen', () => {
     render(<BiosScreen onComplete={() => {}} />);
     advanceSteps(4000);
-    const scanlines = document.querySelector('div[style*="repeating-linear-gradient"]');
+    const scanlines = document.querySelector('.crt-scanlines');
     expect(scanlines).toBeInTheDocument();
   });
 
