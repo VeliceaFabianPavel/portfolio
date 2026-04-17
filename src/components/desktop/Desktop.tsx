@@ -287,7 +287,7 @@ export function Desktop({ onShutDown, onRestart }: DesktopProps) {
           const defaults = getDefaultIconPositions();
           setIconPositions(defaults);
           saveIconPositions(defaults);
-          const defaultBg: DesktopBackground = { type: 'color', value: '#008080' };
+          const defaultBg: DesktopBackground = { type: 'color', value: '#55AAAA' };
           setBackground(defaultBg);
           saveBackground(defaultBg);
         } else {

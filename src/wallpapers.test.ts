@@ -35,7 +35,7 @@ describe('wallpapers module', () => {
 
   describe('loadBackground', () => {
     it('returns teal default when nothing is stored', () => {
-      expect(loadBackground()).toEqual({ type: 'color', value: '#008080' });
+      expect(loadBackground()).toEqual({ type: 'color', value: '#55AAAA' });
     });
 
     it('returns stored value when valid JSON is present', () => {
@@ -48,7 +48,7 @@ describe('wallpapers module', () => {
 
     it('falls back to default when stored value is corrupt', () => {
       localStorage.setItem('win95-desktop-bg', 'not json');
-      expect(loadBackground()).toEqual({ type: 'color', value: '#008080' });
+      expect(loadBackground()).toEqual({ type: 'color', value: '#55AAAA' });
     });
   });
 
@@ -75,7 +75,7 @@ describe('wallpapers module', () => {
 
     it('returns teal fallback for unknown wallpaper name', () => {
       expect(getBackgroundStyle({ type: 'wallpaper', value: 'NotAWallpaper' })).toEqual({
-        backgroundColor: '#008080',
+        backgroundColor: '#55AAAA',
       });
     });
 

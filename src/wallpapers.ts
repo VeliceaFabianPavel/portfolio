@@ -70,7 +70,7 @@ export function getBackgroundStyle(bg: DesktopBackground): React.CSSProperties {
     return { backgroundColor: bg.value };
   }
   const wp = wallpapers.find(w => w.name === bg.value);
-  if (!wp) return { backgroundColor: '#55AAAA ' };
+  if (!wp) return { backgroundColor: '#55AAAA' };
   if (wp.type === 'stretch') {
     return {
       backgroundImage: `url("${wp.src}")`,
